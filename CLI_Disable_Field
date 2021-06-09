@@ -1,0 +1,114 @@
+/**
+* @NApiVersion 2.x
+* @NScriptType ClientScript
+*/
+define(['N/record','N/runtime',],
+    function (record,runtime) {
+        function pageInit(context) {
+            try {
+                /** this will disable the amount for existing line */
+                var rec = context.currentRecord;
+				
+                var itemCount = rec.getLineCount('item');
+					var currentUser = runtime.getCurrentUser();
+					log.debug('page INTT currentUser ',currentUser.roleId);
+					
+			//	alert("itemCount"+itemCount);
+              //  var sublistName = context.sublistId;
+               // var line = rec.getCurrentSublistIndex({ sublistId: sublistName });
+             //   if (itemCount > 0)
+			//if(currentUser.roleId=="customrole_pix_proj_mgr")
+				 {
+					 for(var i=0;i<itemCount;i++)
+						{
+						var theField = rec.getSublistField({sublistId: 'item',fieldId: 'rate',line: i});
+						theField.isDisabled = true;
+						var price_Level = rec.getSublistField({sublistId: 'item',fieldId: 'price',line: i});
+						price_Level.isDisabled =true;
+						
+					}
+					
+				 }
+            } catch (e) {
+                log.error('🛑 pageInit', JSON.stringify(e.message, null, 4));
+            }
+        }
+       
+        
+function postSourcing(context) { 
+		var cRecord = context.currentRecord;
+		var sublistId = context.sublistId;
+		var fieldId = context.fieldId;
+		
+		try {
+			var currentUser = runtime.getCurrentUser();
+		//	log.debug('postsourcing currentUser ',currentUser.roleId);
+	//	if(currentUser.roleId=="customrole_pix_proj_mgr")
+			{
+				var lineCount = cRecord.getLineCount('item');
+				if(lineCount)
+				{
+				for(var i=0;i<lineCount;i++)
+				{
+				//	log.debug('line iterator',i);
+					var theField = cRecord.getSublistField({sublistId: 'item',fieldId: 'price',line: i});
+					theField.isDisabled = true;
+					var theRate = cRecord.getSublistField({sublistId: 'item',fieldId: 'rate',line: i});
+					theRate.isDisabled = true;
+				}
+			}
+			else
+			{
+			var currentIndex = cRecord.getCurrentSublistIndex({sublistId:'item'});
+			var selectLine = cRecord.selectLine({sublistId:'item',line:0});
+			var priceLevel=	cRecord.getSublistField({sublistId: 'item',fieldId: 'price',line:selectLine })
+			//  log.debug({title : 'PI : priceLevel', details : priceLevel});
+			priceLevel.isDisabled = true;
+			var itemRate=	cRecord.getSublistField({sublistId: 'item',fieldId: 'rate',line:selectLine })
+			itemRate.isDisabled = true;
+              
+			}
+			}
+		} 
+		catch (e) {
+		 log.error ({
+		   title: e.name,
+			 details: e.message
+		});
+	}
+}
+function lineInit(context) {
+     try{
+		 var estimateObj = context.currentRecord;
+		 var currentUser = runtime.getCurrentUser();
+		log.debug('line init currentUser ',currentUser.roleId);
+		 var lineCount = estimateObj.getLineCount('item');
+		 var qty = estimateObj.getCurrentSublistValue({sublistId: 'item',fieldId : 'rate',});
+//	if (currentUser.roleId=="customrole_pix_proj_mgr") 
+		if(lineCount)
+		 {
+		//  estimateObj.getSublistField({sublistId : 'item',fieldId: 'amount',line:0}).isDisabled = true;
+		   estimateObj.getSublistField({sublistId : 'item',fieldId: 'price',line:0}).isDisabled = true;
+		  estimateObj.getSublistField({sublistId : 'item',fieldId: 'rate',line:0}).isDisabled = true;
+		 }
+		 else{
+			estimateObj.getSublistField({sublistId : 'item',fieldId: 'price',line:0}).isDisabled = true;
+			estimateObj.getSublistField({sublistId : 'item',fieldId: 'rate',line:0}).isDisabled = true;
+		 }
+	 }
+	 catch (e) {
+		 log.error ({
+		   title: e.name,
+			 details: e.message
+		});
+	 }
+
+    }
+      
+        return {
+           pageInit: pageInit,
+            postSourcing: postSourcing,
+			lineInit: lineInit
+           
+        };
+    });
